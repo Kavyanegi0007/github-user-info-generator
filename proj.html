@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub User Information</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background: gray;
+        }
+
+        #user-info {
+            margin-top: 20px;
+            display: flex;    
+            flex-wrap: wrap;
+        }
+
+        #user-info img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin-left: 20px;
+        }
+
+        #repos {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .repo-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .repo-card a {
+            text-decoration: none;
+            color: #130068;
+        }
+        
+
+
+        button{
+            background-color: black;
+            color: #ddd;
+        }
+
+        .topic {
+            background-color: #3498db;
+            color: #fff;
+            padding: 3px 8px;
+            border-radius: 5px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>GitHub User Information</h1>
+    
+    <h2>Username</h2>
+    <input type="text" id="username" placeholder="Enter username">
+    <button onclick="getUserInfo()">Get User</button>
+
+    <div id="user-info"></div>
+    <div id="repos"></div>
+
+    <script>
+        async function getUserInfo() {
+            const username = document.getElementById("username").value;
+            const userInfoContainer = document.getElementById("user-info");
+            const reposContainer = document.getElementById("repos");
+
+            try {
+                // Fetch user information
+                const userResponse = await fetch(`https://api.github.com/users/${username}`);
+                const user = await userResponse.json();
+
+                // Fetch user repositories
+                const reposResponse = await fetch(`https://api.github.com/users/${username}/repos`);
+                const repos = await reposResponse.json();
+
+                if (user.message === "Not Found") {
+                    userInfoContainer.innerHTML = `<p>The username does not exist.</p>`;
+                } else {
+                    // Display user information
+                    userInfoContainer.innerHTML = `
+                    <table>
+                     <tr>  
+                        <td> <img src="${user.avatar_url}" alt="${username}'s avatar"> </td>
+
+                        <td> <div>
+                            <ul>
+                            <h2>${user.name || username}</h2>
+                            <h5>${user.bio || "No bio available"}</h5>
+                            <h6>Location: ${user.location || "Not specified"}</h6>
+                            
+                            </ul>
+
+                            
+                        </div> </td>
+                    </tr>
+                    <tr> <td>  <i class="fa fa-link" style="font-size:24px" style="color:black"></i><p><a href="${user.html_url}" target="_blank">GitHub Profile</a></p> <td> </tr>
+                    </table>
+                    `;
+
+                    // Display user repositories in cards
+                    const repoCards = repos.map(repo => `
+                        <div class="repo-card">
+                            <h3><a href="${repo.html_url}" target="_blank">${repo.name}</a></h3>
+                            <p>${repo.description || "No description"}</p>
+                            <p>Topics: ${repo.topics.length > 0 ? repo.topics.join(', ') : "No topics"}</p>
+                        </div>
+                    `).join("");
+
+                    reposContainer.innerHTML = repoCards;
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                userInfoContainer.innerHTML = `<p>Error fetching data. Please try again later.</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
